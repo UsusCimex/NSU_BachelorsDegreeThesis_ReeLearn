@@ -1,20 +1,21 @@
-requests
-boto3
-fastapi
-uvicorn[standard]
-sqlalchemy
-psycopg2-binary
-alembic
-pydantic
-pydantic-settings
-elasticsearch
-celery
-redis
-python-multipart
-torch
-torchvision
-torchaudio
-openai-whisper
-nltk==3.8.1
-langdetect==1.0.9
-psutil
+requests==2.32.3           # HTTP-библиотека :contentReference[oaicite:8]{index=8}
+boto3==1.38.8              # AWS SDK :contentReference[oaicite:9]{index=9}
+fastapi==0.115.12          # ASGI-фреймворк 
+uvicorn[standard]==0.34.2  # ASGI-сервер 
+sqlalchemy==2.0.40         # ORM 
+psycopg2-binary==2.9.10    # PostgreSQL-драйвер 
+alembic==1.15.2            # Миграции БД 
+pydantic==2.11.4           # Валидация данных 
+pydantic-settings==2.9.1   # Настройки 
+elasticsearch>=8,<9        # Клиент ES 
+celery==5.5.2              # Очереди задач 
+redis==6.0.0               # Клиент Redis 
+python-multipart==0.0.20   # ASGI-парсер форм 
+torch==2.7.0               # PyTorch
+torchvision==0.22.0        # Вспомогательные модели 
+torchaudio==2.7.0          # Аудио-модуль 
+openai-whisper==20240930   # Whisper ASR 
+nltk==3.9.1                # NLP-библиотека 
+langdetect==1.0.9          # Детекция языка 
+psutil==7.0.0              # Мониторинг процессов 
+python-dotenv==1.1.0       # .env-файлы 

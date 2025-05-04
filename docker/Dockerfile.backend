@@ -1,22 +1,22 @@
-FROM python:3.9-slim
+FROM python:3.12-slim-bullseye
+
+RUN set -eux \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
+      ffmpeg \
+      git \
+      build-essential \
+      libpq-dev \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
 ENV PIP_DEFAULT_TIMEOUT=1200
 
-# Копирование и установка зависимостей
 COPY backend/requirements.txt .
-RUN pip install --upgrade pip && pip install --retries 3 -r requirements.txt
+RUN pip install --upgrade pip \
+ && pip install --no-cache-dir --retries 3 -r requirements.txt
 
-# Скачиваем данные NLTK
-RUN python -c "import nltk; nltk.download('punkt')"
+RUN python3 -c "import nltk; nltk.download('punkt')"
 
-# Копирование исходного кода приложения
 COPY backend/ .
-
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
