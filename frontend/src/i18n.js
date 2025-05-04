@@ -43,7 +43,7 @@ export const translations = {
       searchFragments: "Поиск фрагментов",
       videoDetail: "Детали видео",
       exact: "Точный",
-      fuzzy: "Нечёткий",
+      fuzzy: "Неточный",
       language: "Язык",
       enterSearch: "Введите запрос и нажмите Enter",
       resultNotFound: "Результаты не найдены.",

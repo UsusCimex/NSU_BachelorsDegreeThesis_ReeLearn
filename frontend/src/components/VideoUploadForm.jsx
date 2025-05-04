@@ -16,7 +16,7 @@ import {
   Divider
 } from "@mui/material";
 import AlertMessage from "./AlertMessage";
-import { uploadVideo, getTaskStatus, checkServerHealth, cleanupTempFiles } from "../services/api";
+import { uploadVideo, getTaskStatus } from "../services/api";
 import { useTranslation } from "../hooks/useTranslation";
 import StorageIcon from '@mui/icons-material/Storage';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
@@ -35,89 +35,11 @@ const VideoUploadForm = () => {
   const [statusText, setStatusText] = useState("");
   const [error, setError] = useState("");
   const [uploadWarning, setUploadWarning] = useState("");
-  const [serverInfo, setServerInfo] = useState(null);
-  const [checkingServer, setCheckingServer] = useState(false);
-  const [cleaning, setCleaning] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   
   const { t } = useTranslation();
   const fileInputRef = useRef();
   const uploadInProgress = useRef(false);
-
-  // Проверяем состояние сервера при загрузке компонента
-  useEffect(() => {
-    checkServerStatus();
-  }, []);
-
-  const checkServerStatus = async () => {
-    try {
-      setCheckingServer(true);
-      const health = await checkServerHealth();
-      setServerInfo(health);
-      
-      // Если место на диске ниже критического, предупреждаем пользователя
-      if (health.disk_space_warning) {
-        setUploadWarning(
-          t("lowServerDiskSpace", 
-            "Warning: Low disk space on the server. Large uploads may fail.")
-        );
-      }
-    } catch (error) {
-      console.error("Error checking server health:", error);
-      setUploadWarning(
-        t("serverCheckFailed", 
-          "Could not verify server status. Upload may be limited.")
-      );
-    } finally {
-      setCheckingServer(false);
-    }
-  };
-
-  const handleCleanupTempFiles = async () => {
-    try {
-      setCleaning(true);
-      const result = await cleanupTempFiles(true); // force = true для удаления всех временных файлов
-      
-      if (result && result.space_freed_mb) {
-        setServerInfo(prev => {
-          if (!prev) return prev;
-          
-          const freedBytes = result.space_freed_mb * 1024 * 1024;
-          return {
-            ...prev,
-            system: {
-              ...prev.system,
-              disk: {
-                ...prev.system.disk,
-                free: prev.system.disk.free + freedBytes,
-                free_gb: (prev.system.disk.free + freedBytes) / (1024**3),
-                free_percent: ((prev.system.disk.free + freedBytes) * 100) / prev.system.disk.total
-              }
-            },
-            temp_files: {
-              ...prev.temp_files,
-              count: 0,
-              total_size_mb: 0
-            }
-          };
-        });
-        
-        // Показываем сообщение об успешной очистке
-        setUploadWarning(
-          t("cleanupSuccess", 
-            `Successfully cleaned up server space. Freed ${result.space_freed_mb.toFixed(1)} MB`)
-        );
-      }
-      
-      // Обновляем информацию о сервере
-      checkServerStatus();
-    } catch (error) {
-      console.error("Error cleaning up temp files:", error);
-      setError(t("cleanupFailed", "Failed to clean up temporary files."));
-    } finally {
-      setCleaning(false);
-    }
-  };
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -133,45 +55,9 @@ const VideoUploadForm = () => {
     }
     
     try {
-      // Предотвращаем повторную загрузку
       if (uploadInProgress.current) {
         setUploadWarning(t("uploadInProgress", "Upload already in progress, please wait."));
         return;
-      }
-      
-      // Проверяем состояние сервера перед загрузкой большого файла
-      if (file.size > 1024 * 1024 * 1024) { // > 1 GB
-        setStatusText(t("checkingServerSpace", "Checking server disk space..."));
-        try {
-          const health = await checkServerHealth();
-          const freeSpaceGB = health.system.disk.free_gb || 0;
-          const freePercent = health.system.disk.free_percent || 0;
-          const requiredSpaceGB = file.size * 1.5 / (1024 * 1024 * 1024);
-          
-          // Обновляем информацию о сервере
-          setServerInfo(health);
-          
-          // Если свободного места меньше, чем нужно для файла * 1.5
-          if (freeSpaceGB < requiredSpaceGB) {
-            setError(
-              t("notEnoughServerSpace", 
-                `Not enough space on server. Required: ${requiredSpaceGB.toFixed(1)} GB, Available: ${freeSpaceGB.toFixed(1)} GB.`)
-            );
-            return;
-          }
-          
-          // Если свободного места меньше 20%
-          if (freePercent < 20) {
-            setUploadWarning(
-              t("lowServerDiskSpace", 
-                `Warning: Server has only ${freePercent.toFixed(1)}% free space. Upload might fail.`)
-            );
-          }
-        } catch (err) {
-          console.error("Error checking server health:", err);
-          // Продолжаем загрузку, но выдаем предупреждение
-          setUploadWarning(t("serverCheckFailed", "Could not verify server space. Upload may fail."));
-        }
       }
       
       uploadInProgress.current = true;
@@ -216,8 +102,6 @@ const VideoUploadForm = () => {
           if (statusRes.status === "completed") {
             clearInterval(interval);
             uploadInProgress.current = false;
-            // Обновляем информацию о сервере после успешной загрузки
-            checkServerStatus();
           } else if (statusRes.status === "failed") {
             clearInterval(interval);
             uploadInProgress.current = false;
@@ -282,76 +166,9 @@ const VideoUploadForm = () => {
       e.dataTransfer.clearData();
     }
   };
-  
-  const getServerStatusColor = () => {
-    if (!serverInfo) return "default";
-    if (serverInfo.status === "ok") return "success";
-    if (serverInfo.status === "warning") return "warning";
-    return "error";
-  };
-  
-  const getServerStatusIcon = () => {
-    if (!serverInfo) return null;
-    if (serverInfo.status === "ok") return <CheckIcon fontSize="small" />;
-    if (serverInfo.status === "warning") return <WarningIcon fontSize="small" />;
-    return <ErrorIcon fontSize="small" />;
-  };
 
   return (
     <Box>
-      {/* Информация о состоянии сервера */}
-      <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item>
-            <Tooltip title={t("refreshServerStatus", "Refresh server status")}>
-              <IconButton onClick={checkServerStatus} disabled={checkingServer}>
-                <StorageIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-          <Grid item xs>
-            {serverInfo ? (
-              <>
-                <Typography variant="body2">
-                  {t("serverStatus", "Server Status")}:{" "}
-                  <Chip 
-                    size="small" 
-                    color={getServerStatusColor()} 
-                    icon={getServerStatusIcon()} 
-                    label={serverInfo.status.toUpperCase()} 
-                  />
-                </Typography>
-                <Typography variant="body2">
-                  {t("diskSpace", "Free disk space")}:{" "}
-                  {formatFileSize(serverInfo.system.disk.free)} ({serverInfo.system.disk.free_percent.toFixed(1)}%)
-                </Typography>
-                {serverInfo.temp_files && (
-                  <Typography variant="body2">
-                    {t("tempFiles", "Temp files")}:{" "}
-                    {serverInfo.temp_files.count} ({formatFileSize(serverInfo.temp_files.total_size_mb * 1024 * 1024)})
-                  </Typography>
-                )}
-              </>
-            ) : (
-              <Typography variant="body2">
-                {checkingServer ? t("checkingServer", "Checking server status...") : t("serverStatusUnknown", "Server status unknown")}
-              </Typography>
-            )}
-          </Grid>
-          <Grid item>
-            <Tooltip title={t("cleanupServerFiles", "Clean up temporary files")}>
-              <IconButton 
-                onClick={handleCleanupTempFiles} 
-                disabled={cleaning || !serverInfo}
-                color="primary"
-              >
-                <DeleteSweepIcon />
-              </IconButton>
-            </Tooltip>
-          </Grid>
-        </Grid>
-      </Box>
-      
       <Divider sx={{ mb: 3 }} />
       
       <Box
@@ -417,7 +234,7 @@ const VideoUploadForm = () => {
         <Button 
           variant="contained" 
           type="submit"
-          disabled={uploadInProgress.current || !file || !name || cleaning}
+          disabled={uploadInProgress.current || !file || !name}
         >
           {t("uploadVideo")}
         </Button>

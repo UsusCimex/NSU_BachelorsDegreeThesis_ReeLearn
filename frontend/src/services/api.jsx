@@ -82,9 +82,8 @@ export const getTaskStatus = async (taskId) => {
   }
 };
 
-// Новые функции
-
-export const checkServerHealth = async () => {
+// Функция проверки сервера
+/*export const checkServerHealth = async () => {
   try {
     const res = await axios.get(`${API_BASE.replace('/api/v1', '')}/health`);
     return res.data;
@@ -108,4 +107,4 @@ export const cleanupTempFiles = async (force = false, hours = 12) => {
     console.error("Cleanup temp files error:", error);
     throw error;
   }
-};
+};*/
