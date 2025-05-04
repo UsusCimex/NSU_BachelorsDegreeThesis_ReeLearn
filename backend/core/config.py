@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
     TEMP_UPLOAD_DIR: str = "/tmp/videos"
+    TEMP_VIDEO_DIR: str = "/tmp/videos"
+    VIDEO_TEMP_SUBDIR: str = "fragments"
     MAX_UPLOAD_SIZE: int = 15 * 1024 * 1024 * 1024  # 15 ГБ максимальный размер файла
     UPLOAD_CHUNK_SIZE: int = 5 * 1024 * 1024  # 5 МБ размер чанка для потоковой передачи
     MIN_FREE_SPACE_PERCENTAGE: float = 20.0  # Минимальный процент свободного места на диске

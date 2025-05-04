@@ -102,12 +102,34 @@ class VideoProcessor:
         return unique_fragments
     
     def extract_audio(self, video_path: str) -> str:
+        if not os.path.exists(video_path):
+            raise FileNotFoundError(f"Video file not found: {video_path}")
+            
         audio_path = os.path.splitext(video_path)[0] + ".wav"
-        cmd = ["ffmpeg", "-i", video_path, "-vn", "-acodec", "pcm_s16le", "-ar", "16000", "-ac", "1", "-y", audio_path]
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        if proc.returncode != 0:
-            raise RuntimeError(proc.stderr)
-        return audio_path
+        cmd = [
+            "ffmpeg", "-y",
+            "-i", video_path,
+            "-vn",
+            "-acodec", "pcm_s16le",
+            "-ar", "16000",
+            "-ac", "1",
+            audio_path
+        ]
+        
+        try:
+            proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            if not os.path.exists(audio_path):
+                raise FileNotFoundError(f"Failed to create audio file: {audio_path}")
+            return audio_path
+            
+        except subprocess.CalledProcessError as e:
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
+            raise RuntimeError(f"FFmpeg error: {e.stderr}")
+        except Exception as e:
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
+            raise RuntimeError(f"Failed to extract audio: {str(e)}")
     
     def extract_subtitles(self, video_path: str):
         result = self.model.transcribe(video_path, task="transcribe", language=None, word_timestamps=True)

@@ -1,6 +1,7 @@
 import os
 import shutil
 import uuid
+from pathlib import Path
 from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
 from db.models.video_fragment import VideoFragment
@@ -24,6 +25,14 @@ class SmartVideoFragmenter:
         self.default_language = default_language
         self.max_sentences = max_sentences
         self.max_video_duration = max_video_duration 
+        self.temp_dir = Path(settings.TEMP_VIDEO_DIR)
+        self.temp_fragments_dir = self.temp_dir / settings.VIDEO_TEMP_SUBDIR
+        self._ensure_temp_dirs()
+
+    def _ensure_temp_dirs(self):
+        """Ensure temporary directories exist"""
+        self.temp_dir.mkdir(parents=True, exist_ok=True)
+        self.temp_fragments_dir.mkdir(parents=True, exist_ok=True)
     
     @staticmethod
     def detect_language(text: str) -> str:
@@ -202,29 +211,31 @@ class SmartVideoFragmenter:
         if not os.path.exists(video_path):
             raise FileNotFoundError(f"Файл {video_path} не найден!")
         
-        # Используем настраиваемую директорию для временных файлов, если задана в settings
-        temp_dir = getattr(settings, "TEMP_VIDEO_DIR", os.path.dirname(video_path))
-        if not os.path.exists(temp_dir):
-            os.makedirs(temp_dir)
+        # Use temp fragments directory
+        output_path = str(self.temp_fragments_dir / f"split_{uuid.uuid4()}_{start_time:.1f}_{end_time:.1f}.mp4")
         
         MIN_FREE_SPACE = 100 * 1024 * 1024  # 100 MB
-        free_space = shutil.disk_usage(temp_dir).free
+        free_space = shutil.disk_usage(str(self.temp_dir)).free
         if free_space < MIN_FREE_SPACE:
-            raise RuntimeError(f"Недостаточно свободного места в {temp_dir}: доступно {free_space} байт")
+            raise RuntimeError(f"Недостаточно свободного места в {self.temp_dir}: доступно {free_space} байт")
         
-        output_path = os.path.join(temp_dir, f"split_{start_time}_{end_time}.mp4")
-        
-        command = f"ffmpeg -y -i \"{video_path}\" -ss {start_time} -to {end_time} -c copy \"{output_path}\""
-        logger.info(f"Выполняется команда: {command}")
-        proc = subprocess.run(command, shell=True, capture_output=True)
-        
-        if proc.returncode != 0:
-            logger.error(f"Ошибка при разбиении видео: {proc.stderr.decode()}")
-            raise RuntimeError(f"Ошибка FFmpeg: {proc.stderr.decode()}")
-        
-        if not os.path.exists(output_path):
-            logger.error(f"Не удалось создать файл: {output_path}")
-            raise FileNotFoundError(f"Не удалось создать файл {output_path}")
-        
-        return output_path
+        try:
+            command = ["ffmpeg", "-y", "-i", video_path, 
+                      "-ss", f"{start_time:.3f}", 
+                      "-to", f"{end_time:.3f}",
+                      "-c", "copy", output_path]
+            
+            proc = subprocess.run(command, capture_output=True, text=True)
+            if proc.returncode != 0:
+                raise RuntimeError(f"FFmpeg error: {proc.stderr}")
+            
+            if not os.path.exists(output_path):
+                raise FileNotFoundError(f"Failed to create file {output_path}")
+            
+            return output_path
+            
+        except Exception as e:
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            raise RuntimeError(f"Error splitting video: {str(e)}")
 
