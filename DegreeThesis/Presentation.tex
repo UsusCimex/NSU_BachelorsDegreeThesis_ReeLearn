@@ -1,0 +1,344 @@
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{graphicx}
+\usepackage{movie15}
+\usepackage{fontawesome5}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage[most]{tcolorbox}
+\usepackage{lmodern}
+\usepackage{enumitem}
+
+% Современная тема и настройки
+\usetheme{metropolis}
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{frametitle}{bg=black,fg=white}
+\setbeamercolor{progress bar}{fg=green!40!black,bg=gray!30}
+\setbeamertemplate{frame numbering}[fraction]
+\setbeamertemplate{navigation symbols}{}
+
+% Упрощенная версия progress bar
+\makeatletter
+\def\progressbar@progressbar{%
+    \begin{tikzpicture}
+        \draw[progress bar.bg] (0,0) rectangle (\paperwidth,0.4pt);
+        \draw[progress bar.fg] (0,0) rectangle (\insertframenumber\paperwidth/\inserttotalframenumber,0.4pt);
+    \end{tikzpicture}%
+}
+
+% Добавляем progress bar в footer
+\addtobeamertemplate{footline}{}{%
+    \begin{beamercolorbox}[wd=\paperwidth,ht=1pt,dp=0pt]{progress bar}
+        \progressbar@progressbar
+    \end{beamercolorbox}%
+}
+\makeatother
+
+% Добавляем новые цвета и настройки
+\definecolor{accent}{RGB}{41,128,185}
+\definecolor{light-accent}{RGB}{52,152,219}
+\definecolor{emphasis}{RGB}{231,76,60}
+
+% Настраиваем tcolorbox
+\tcbset{
+    boxrule=0pt,
+    frame hidden,
+    borderline west={3pt}{0pt}{accent},
+    colback=black!3,
+    sharp corners,
+    title style={sharp corners, colback=accent!10},
+    fonttitle=\bfseries
+}
+
+% Определяем стиль для важных блоков
+\newtcolorbox{highlight}{
+    colback=accent!5,
+    boxrule=0pt,
+    frame hidden,
+    borderline={3pt}{0pt}{accent},
+    sharp corners
+}
+
+\begin{document}
+
+\begin{frame}[plain,c]
+  \centering
+  \vspace{1em}
+
+  % Университет
+  {\large Новосибирский государственный университет, НГУ\par}
+  \vspace{0.5em}
+
+  % Факультет/специальность
+  {\normalsize 09.03.01 Информатика и вычислительная техника\\
+   Программная инженерия и компьютерные науки\par}
+  \vspace{1.2em}
+
+  % Название работы – теперь жирное и более заметное
+  {\Large Разработка сервиса выделения\\
+   видеофрагментов по текстовой информации\par}
+  \vspace{1.8em}
+
+  \begin{flushleft}
+	  {\small Студент: Ланин Даниил Михайлович\par}
+	  {\small Руководитель ВКР: Яхъяева Гульнара Эркиновна,\\
+	   к.ф.-м.н., доцент кафедры общей информатики ФИТ\par}
+	  {\small Соруководитель ВКР: Худяков Даниил Александрович,\\
+	   ассистент кафедры общей информатики ФИТ\par}
+  \end{flushleft}
+
+  \vspace{1.0em}
+  % Дата
+  {\normalsize 17.06.2025\par}
+  \vspace{1em}
+\end{frame}
+
+
+\begin{frame}{Актуальность}
+    \begin{itemize}
+        \item \faChartLine\ Экспоненциальный рост данных в интернете
+        \item \faVideo\ Видео — доминирующий формат интернет-трафика
+        \item \faSearch\ Сложность поиска информации в видео
+        \item \faClock\ 500+ часов видео загружается на YouTube каждую минуту
+        \item \faExclamationTriangle\ Проблема эффективного поиска становится критической
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Рост видеоконтента}
+    \centering
+    \includegraphics[width=0.75\textwidth]{media/video_platform_growth.jpg}
+    \begin{tcolorbox}[colback=black!5,colframe=black!20,title=www.statista.com]
+        К началу 2025 года около 76\% всего мобильного трафика генерируется видеоприложениями!
+    \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Цель и задачи проекта}
+    \small Цель: Создание сервиса, позволяющего автоматически выделять релевантные фрагменты видео по текстовому запросу.
+
+    % Два столбца с задачами и результатами
+    \begin{columns}[T]
+        \begin{column}{0.52\textwidth}
+            \begin{tcolorbox}[title=\faTasks\ Основные задачи,
+                              left=5pt,
+                              right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item \faServer\ Создание асинхронного веб-приложения
+                    \item \faSearch\ Реализация умного поиска по видео
+                    \item \faHighlighter\ Подсветка релевантных фрагментов
+                    \item \faLanguage\ Поддержка множества языков
+                    \item \faDownload\ Сохранение найденных фрагментов
+                    \item \faChartLine\ Оптимизация производительности
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[title=\faLightbulb\ Ожидаемые результаты,
+                              left=5pt,
+                              right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item Быстрый поиск
+                    \item Точные результаты
+                    \item Удобный интерфейс
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Области применения}
+    \begin{columns}[T]
+        \begin{column}{0.5\textwidth}
+            \begin{tcolorbox}[title=\faGraduationCap\ Образование,
+                            left=5pt,
+                            right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item Поиск по видеолекциям
+                    \item Создание учебных материалов
+                    \item Анализ контента
+                \end{itemize}
+            \end{tcolorbox}
+            \vspace{0.3cm}
+            \begin{tcolorbox}[title=\faLanguage\ Изучение языков,
+                            left=5pt,
+                            right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item Поиск примеров произношения
+                    \item Изучение разговорной речи
+                    \item Анализ диалектов
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{tcolorbox}[title=\faSearchPlus\ Исследования,
+                            left=5pt,
+                            right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item Анализ интервью
+                    \item Обработка данных
+                    \item Создание баз знаний
+                \end{itemize}
+            \end{tcolorbox}
+            \vspace{0.3cm}
+            \begin{tcolorbox}[title=\faBuilding\ Бизнес,
+                            left=5pt,
+                            right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item Анализ совещаний
+                    \item Обучение персонала
+                    \item Архивация данных
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Технологии и инструменты разработки}
+    \begin{columns}[T]
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[title=\faRobot\ Машинное обучение,
+                            left=5pt,
+                            right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item \textcolor{accent}{Whisper} для транскрибции
+                \end{itemize}
+            \end{tcolorbox}
+            \vspace{0.3cm}
+            \begin{tcolorbox}[title=\faChartLine\ Оптимизация,
+                            left=5pt,
+                            right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item Кэширование запросов
+                    \item Параллельное выполнение запросов
+                    \item 
+                \end{itemize}
+            \end{tcolorbox}
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{tcolorbox}[title=\faServer\ Архитектура,
+                            left=5pt,
+                            right=5pt]
+                \begin{itemize}[nosep, leftmargin=*]
+                    \item \textcolor{accent}{FastAPI} backend
+                    \item \textcolor{accent}{Celery} для асинхронности
+                    \item \textcolor{accent}{Elasticsearch} для поиска
+                \end{itemize}
+            \end{tcolorbox}
+            \vspace{0.3cm}
+            \includegraphics[width=\linewidth]{media/ml_technology.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{Архитектура приложения}
+    \begin{itemize}
+        \item Асинхронная архитектура на основе FastAPI и Celery.
+        \item Высокая производительность и масштабируемость.
+        \item Параллельная обработка множества запросов.
+        \item Минимизация времени отклика.
+    \end{itemize}
+    \vfill
+    \centering
+    \begin{minipage}{0.6\textwidth}
+        \includegraphics[width=\linewidth]{media/celery.png} % celery
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.35\textwidth}
+        \includegraphics[width=\linewidth]{media/tools.png} % tools
+    \end{minipage}
+\end{frame}
+
+\begin{frame}{Обработка видео}
+  \begin{itemize}
+    \item \faUpload\ Загрузка видео на сервер
+    \item \faClosedCaptioning\ Генерация субтитров с помощью \textcolor{accent}{Whisper}
+    \item \faSearch\ Индексация субтитров в \textcolor{accent}{Elasticsearch}
+    \item \faDatabase\ Сохранение всех данных в БД
+  \end{itemize}
+  \vfill
+  \hspace*{-0.09\linewidth}%
+  \includegraphics[width=1.2\linewidth]{media/processing_video.png}
+\end{frame}
+
+\begin{frame}{Поиск контента}
+  \begin{itemize}
+    \item \faDatabase\ Использование \textcolor{accent}{Elasticsearch}
+    \item \faSearchPlus\ Поддержка точного и неточного поиска:
+      \begin{itemize}[nosep]
+        \item \faBullseye\ \textbf{Точный поиск} — строгое соответствие запросу
+        \item \faMagic\ \textbf{Неточный поиск} — совпадение слов/выражений по схожести (Эмбеддинг)
+      \end{itemize}
+  \end{itemize}
+  \vfill
+  \centering
+  \includegraphics[width=\linewidth]{media/search_video.png}
+\end{frame}
+
+\begin{frame}{Интерфейс пользователя}
+    \begin{itemize}[label={}, leftmargin=*]
+        \item \faSearch\ Интуитивно понятный интерфейс
+        \item \faFilter\ Возможность просматривания загруженных видео с быстрым поиском фрагментов по этому видео
+        \item \faHighlighter\ Подсветка ключевых слов
+        \item \faDownload\ Сохранение найденных фрагментов
+        \item \faHistory\ Просмотр истории поиска
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Демонстрация интерфейса - Поиск}
+    \centering
+    \includegraphics[width=0.85\textwidth]{media/web_interface_1.png}
+    \vfill
+    \begin{tcolorbox}[title=\faSearch\ Поисковый интерфейс]
+        Интеллектуальная система поиска с историей запросов
+    \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Демонстрация интерфейса - Результаты}
+    \centering
+    \includegraphics[width=0.85\textwidth]{media/web_interface_2.png}
+    \vfill
+    \begin{tcolorbox}[title=\faPlayCircle\ Просмотр результатов]
+        Удобный просмотр найденных фрагментов с подсветкой
+    \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Демонстрация работы системы}
+	% тут надо включить видео
+\end{frame}
+
+\begin{frame}{Преимущества проекта}
+    \begin{itemize}[nosep]
+        \item \faRocket\ Универсальная асинхронная архитектура (Использование Celery и FastAPI)
+        \item \faUpload\ Возможность загрузки своего видеоролика с автоматической генерацией субтитров
+        \item \faLanguage\ Нейронная сеть поддерживает 99 различных языков
+        \item \faSave\ Возможность сохранить найденный видеофрагмент
+        \item \faSearch\ Поддержка неточного поиска по схожесть (Эмбеддинг и кластеризация)
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Результаты проделанной работы}
+    \begin{highlight}
+        \textbf{\faCheckCircle\ Основные результаты:}
+        \begin{itemize}
+            \item \textcolor{emphasis}{Разработан} функциональный прототип сервиса
+            \item \textcolor{emphasis}{Реализован} эффективный поиск по видео
+            \item \textcolor{emphasis}{Внедрены} современные ML-технологии
+            \item \textcolor{emphasis}{Оптимизирована} обработка видеоданных
+        \end{itemize}
+    \end{highlight}
+\end{frame}
+
+\begin{frame}{Публикации}
+    \small
+    \begin{enumerate}[label=\arabic*. , leftmargin=*]
+        \item Ланин Д. М. Разработка сервиса выделения видеофрагмента по текстовой информации. \\
+              Тезисы докладов Международной конференции «Мальцевские чтения». Новосибирск, 2024. С. 64.
+        \item Ланин Д. М. Разработка сервиса выделения видеофрагментов по текстовой информации. \\
+              Тезисы докладов 63-й Международной научной студенческой конференции. Новосибирск, 2025. Принято к печати.
+    \end{enumerate}
+\end{frame}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\end{document}
